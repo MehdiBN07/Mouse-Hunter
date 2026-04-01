@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html id="html-tag" lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Hunter Online</title>
+    <style>
+        :root {
+            --primary-bg: #a2d2ff;
+            --grass-color: #70e000;
+            --wood-dark: #5d4037;
+            --wood-light: #8d6e63;
+            --btn-start: #4caf50;
+            --btn-settings: #2196f3;
+            --btn-back: #f44336;
+            --mouse-body: #9e9e9e;
+            --mouse-ear-inner: #ffc0cb;
+            --mouse-eye: #000000;
+            --mouse-nose: #ff4081;
+            --error-color: #ff1744; 
+        }
+
+        body {
+            margin: 0; padding: 0;
+            display: flex; align-items: center; justify-content: center;
+            height: 100vh; background: var(--primary-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; touch-action: manipulation;
+        }
+
+        .panel {
+            background: var(--wood-light);
+            border: 8px solid var(--wood-dark);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 0 var(--wood-dark), 0 20px 30px rgba(0,0,0,0.3);
+            text-align: center; color: white; width: 340px;
+            position: relative; z-index: 20;
+        }
+
+        .hidden { display: none !important; }
+
+        .btn {
+            display: block; width: 100%; padding: 12px; margin: 10px 0;
+            border: none; border-radius: 12px; color: white;
+            font-size: 18px; font-weight: bold; cursor: pointer;
+            transition: all 0.2s; box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled { background: #95a5a6; cursor: not-allowed; box-shadow: none; }
+        .btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+        .btn-start { background: var(--btn-start); border-bottom: 5px solid #388e3c; }
+        .btn-settings { background: var(--btn-settings); border-bottom: 5px solid #1976d2; }
+        .btn-back { background: var(--btn-back); border-bottom: 5px solid #d32f2f; }
+        .btn-amber { background: #ffa000; border-bottom: 5px solid #ef6c00; }
+
+        #game-ui { text-align: center; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        #game-container {
+            position: relative; width: 90vw; max-width: 500px; height: 60vh;
+            background: var(--grass-color); border: 10px solid var(--wood-dark);
+            border-radius: 25px; overflow: hidden; display: none;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+        }
+
+        #mouse {
+            position: absolute; width: 55px; height: 45px;
+            background: var(--mouse-body); border-radius: 50% 50% 40% 40%;
+            cursor: pointer; transition: transform 0.1s ease-out;
+            background-image: 
+                radial-gradient(circle at 18px 18px, var(--mouse-eye) 3px, transparent 3px),
+                radial-gradient(circle at 37px 18px, var(--mouse-eye) 3px, transparent 3px),
+                radial-gradient(circle at 27.5px 33px, var(--mouse-nose) 4px, transparent 4px);
+            z-index: 5;
+        }
+
+        #mouse::before, #mouse::after {
+            content: ''; position: absolute; width: 24px; height: 24px;
+            background: var(--mouse-body); border-radius: 50%; top: -10px;
+            background-image: radial-gradient(circle, var(--mouse-ear-inner) 6px, var(--mouse-body) 7px);
+        }
+        #mouse::before { left: -6px; }
+        #mouse::after { right: -6px; }
+
+        .top-bar { display: flex; justify-content: space-around; width: 90vw; max-width: 500px; margin-bottom: 10px; }
+        .stat-box { background: var(--wood-dark); color: white; padding: 5px 15px; border-radius: 10px; font-weight: bold; }
+        
+        input[type="text"] {
+            width: 85%; padding: 10px; border-radius: 8px; border: 3px solid var(--wood-dark);
+            margin-bottom: 5px; font-size: 16px; text-align: center;
+        }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: var(--wood-light); border: 8px solid var(--wood-dark);
+            border-radius: 20px; padding: 25px; text-align: center; color: white;
+            width: 300px;
+        }
+
+        .leaderboard-list {
+            list-style: none; padding: 0; margin: 15px 0;
+            background: rgba(0,0,0,0.2); border-radius: 10px;
+            height: 220px; overflow-y: auto; border: 2px solid var(--wood-dark);
+        }
+        .leaderboard-list li { 
+            padding: 8px 15px; border-bottom: 1px solid rgba(255,255,255,0.1); 
+            display: flex; justify-content: space-between; font-size: 14px;
+        }
+        
+        .flash-red { animation: flash 0.2s; }
+        @keyframes flash { 50% { background-color: #ff5252; } }
+        #lock-timer { font-size: 12px; color: #ffeb3b; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="main-menu" class="panel">
+        <h1 id="txt-title">صيد الفأر</h1>
+        <input type="text" id="player-name" placeholder="اكتب اسمك..." maxlength="12">
+        <div id="lock-timer" class="hidden">تغيير الاسم بعد: 24:00:00</div>
+        <div id="error-text" style="color: var(--error-color); display: none; margin-bottom: 10px;">يرجى كتابة اسمك!</div>
+        <button class="btn btn-start" id="btn-start" onclick="startGame()">ابدأ اللعب</button>
+        <button class="btn btn-settings" id="btn-leader" onclick="toggleSettings(true)">المتصدرين</button>
+    </div>
+
+    <div id="settings-menu" class="panel hidden">
+        <h2 id="txt-leader-title">أفضل 100 لاعب</h2>
+        <ul id="leaderboard-list" class="leaderboard-list">
+            <li>جاري التحميل...</li>
+        </ul>
+        <label id="label-lang" style="display:block; margin-bottom:5px;">اللغة:</label>
+        <select id="lang-select" onchange="changeLanguage()" style="width: 100%; padding: 8px; border-radius: 5px; margin-bottom: 15px;">
+            <option value="ar">العربية</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+        </select>
+        <button class="btn btn-back" id="btn-back" onclick="toggleSettings(false)">رجوع</button>
+    </div>
+
+    <div id="game-ui" class="hidden">
+        <div class="top-bar">
+            <div class="stat-box"><span id="txt-lives-label">الفرص:</span> <span id="lives-display">7</span></div>
+            <div class="stat-box"><span id="txt-score-label">النقاط:</span> <span id="score-display">0</span></div>
+        </div>
+        <div id="game-container" onclick="missClick(event)">
+            <div id="mouse" onclick="hitMouse(event)"></div>
+        </div>
+        <button class="btn btn-amber" id="btn-surrender" style="width: 90vw; max-width: 500px; margin-top: 15px;" onclick="showModal('confirm-modal')">استسلام</button>
+    </div>
+
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="txt-confirm-msg">هل تريد الاستسلام؟</h3>
+            <button class="btn btn-start" id="btn-confirm-yes" onclick="endGame()">نعم</button>
+            <button class="btn btn-back" id="btn-confirm-no" onclick="hideModal('confirm-modal')">إلغاء</button>
+        </div>
+    </div>
+
+    <div id="result-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 id="txt-result-title">انتهت اللعبة!</h2>
+            <p id="txt-final-score-msg">نتيجتك: 0</p>
+            <button class="btn btn-settings" id="btn-result-ok" onclick="hideModal('result-modal'); quitToMenu();">حسناً</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+
+    <script>
+        // --- إعدادات Firebase ---
+        // استبدل القيم أدناه ببيانات مشروعك "Ratgame"
+        const firebaseConfig = {
+            apiKey: "ضع_مفتاحك_هنا",
+            authDomain: "ratgame-XXXXX.firebaseapp.com",
+            databaseURL: "https://ratgame-XXXXX-default-rtdb.firebaseio.com",
+            projectId: "ratgame-XXXXX",
+            storageBucket: "ratgame-XXXXX.appspot.com",
+            messagingSenderId: "XXXXXXXX",
+            appId: "XXXXXXXX"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // --- الترجمة ---
+        const translations = {
+            ar: { title: "صيد الفأر", start: "ابدأ اللعب", leader: "المتصدرين", leaderTitle: "أفضل 100 لاعب", back: "رجوع", lang: "اللغة:", lives: "الفرص:", score: "النقاط:", surrender: "استسلام", error: "يرجى كتابة اسمك!", result: "انتهت اللعبة!", final: "نتيجتك هي: ", confirm: "هل تريد الاستسلام؟", yes: "نعم", no: "إلغاء", ok: "حسناً", lock: "تغيير الاسم متاح بعد: ", placeholder: "اكتب اسمك...", loading: "جاري التحميل...", dir: "rtl" },
+            en: { title: "Mouse Hunter", start: "Start Game", leader: "Leaderboard", leaderTitle: "Top 100 Players", back: "Back", lang: "Language:", lives: "Lives:", score: "Score:", surrender: "Surrender", error: "Please enter your name!", result: "Game Over!", final: "Your Score: ", confirm: "Surrender?", yes: "Yes", no: "Cancel", ok: "OK", lock: "Name change in: ", placeholder: "Your name...", loading: "Loading...", dir: "ltr" },
+            fr: { title: "Chasseur de Souris", start: "Jouer", leader: "Classement", leaderTitle: "Top 100 Joueurs", back: "Retour", lang: "Langue:", lives: "Vies:", score: "Score:", surrender: "Abandonner", error: "Entrez votre nom!", result: "Fin de jeu!", final: "Ton Score: ", confirm: "Abandonner?", yes: "Oui", no: "Annuler", ok: "D'accord", lock: "Changement dans: ", placeholder: "Ton nom...", loading: "Chargement...", dir: "ltr" }
+        };
+
+        function changeLanguage() {
+            const lang = document.getElementById('lang-select').value;
+            const t = translations[lang];
+            
+            document.getElementById('html-tag').dir = t.dir;
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('btn-start').innerText = t.start;
+            document.getElementById('btn-leader').innerText = t.leader;
+            document.getElementById('txt-leader-title').innerText = t.leaderTitle;
+            document.getElementById('btn-back').innerText = t.back;
+            document.getElementById('label-lang').innerText = t.lang;
+            document.getElementById('txt-lives-label').innerText = t.lives;
+            document.getElementById('txt-score-label').innerText = t.score;
+            document.getElementById('btn-surrender').innerText = t.surrender;
+            document.getElementById('error-text').innerText = t.error;
+            document.getElementById('txt-confirm-msg').innerText = t.confirm;
+            document.getElementById('btn-confirm-yes').innerText = t.yes;
+            document.getElementById('btn-confirm-no').innerText = t.no;
+            document.getElementById('txt-result-title').innerText = t.result;
+            document.getElementById('btn-result-ok').innerText = t.ok;
+            document.getElementById('player-name').placeholder = t.placeholder;
+            
+            // تحديث حالة العداد إذا كان موجوداً
+            checkNameLock();
+        }
+
+        // --- منطق اللعبة ---
+        const nameInput = document.getElementById('player-name');
+        const lockTimer = document.getElementById('lock-timer');
+        let score = 0, lives = 7, gameInterval;
+
+        function checkNameLock() {
+            const lastChange = localStorage.getItem('nameLastChange');
+            const savedName = localStorage.getItem('savedPlayerName');
+            const lang = document.getElementById('lang-select').value;
+            
+            if (savedName) nameInput.value = savedName;
+
+            if (lastChange) {
+                const diff = new Date().getTime() - parseInt(lastChange);
+                const dayMs = 24 * 60 * 60 * 1000;
+                if (diff < dayMs) {
+                    nameInput.disabled = true;
+                    lockTimer.classList.remove('hidden');
+                    updateTimerDisplay(dayMs - diff, lang);
+                    return true;
+                }
+            }
+            nameInput.disabled = false;
+            lockTimer.classList.add('hidden');
+            return false;
+        }
+
+        function updateTimerDisplay(ms, lang) {
+            if (ms <= 0) { checkNameLock(); return; }
+            const h = Math.floor(ms / 3600000);
+            const m = Math.floor((ms % 3600000) / 60000);
+            const s = Math.floor((ms % 60000) / 1000);
+            lockTimer.innerText = translations[lang].lock + `${h}:${m}:${s}`;
+            setTimeout(() => {
+                const currentLang = document.getElementById('lang-select').value;
+                updateTimerDisplay(ms - 1000, currentLang);
+            }, 1000);
+        }
+
+        function startGame() {
+            const currentName = nameInput.value.trim();
+            if (currentName === "") {
+                document.getElementById('error-text').style.display = 'block';
+                return;
+            }
+            if (!nameInput.disabled && currentName !== localStorage.getItem('savedPlayerName')) {
+                localStorage.setItem('savedPlayerName', currentName);
+                localStorage.setItem('nameLastChange', new Date().getTime().toString());
+            }
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            document.getElementById('game-container').style.display = 'block';
+            score = 0; lives = 7;
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('lives-display').innerText = lives;
+            updateDifficulty();
+            moveMouse();
+        }
+
+        function moveMouse() {
+            const gc = document.getElementById('game-container');
+            const m = document.getElementById('mouse');
+            m.style.left = Math.floor(Math.random() * (gc.clientWidth - 55)) + 'px';
+            m.style.top = Math.floor(Math.random() * (gc.clientHeight - 45)) + 'px';
+        }
+
+        function hitMouse(e) {
+            e.stopPropagation(); e.preventDefault();
+            score++; document.getElementById('score-display').innerText = score;
+            updateDifficulty();
+            moveMouse();
+        }
+
+        function missClick() {
+            lives--; document.getElementById('lives-display').innerText = lives;
+            document.getElementById('game-container').classList.add('flash-red');
+            setTimeout(() => document.getElementById('game-container').classList.remove('flash-red'), 200);
+            if (lives <= 0) endGame();
+        }
+
+        function updateDifficulty() {
+            clearInterval(gameInterval);
+            let delay = score < 20 ? 2000 - (score * 70) : 800;
+            gameInterval = setInterval(moveMouse, delay);
+        }
+
+        function saveToFirebase(name, finalScore) {
+            const ref = database.ref('leaderboard/' + name);
+            ref.once('value').then(snap => {
+                if (!snap.exists() || finalScore > snap.val().score) {
+                    ref.set({ name: name, score: finalScore });
+                }
+            });
+        }
+
+        function loadLeaderboard() {
+            const list = document.getElementById('leaderboard-list');
+            const lang = document.getElementById('lang-select').value;
+            list.innerHTML = `<li>${translations[lang].loading}</li>`;
+            
+            database.ref('leaderboard').orderByChild('score').limitToLast(100).on('value', snap => {
+                let items = [];
+                snap.forEach(c => items.push(c.val()));
+                items.sort((a, b) => b.score - a.score);
+                list.innerHTML = items.map((e, i) => `<li><span>#${i+1} ${e.name}</span><span>${e.score}</span></li>`).join('');
+            });
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            hideModal('confirm-modal');
+            saveToFirebase(nameInput.value, score);
+            const lang = document.getElementById('lang-select').value;
+            document.getElementById('txt-final-score-msg').innerText = translations[lang].final + score;
+            showModal('result-modal');
+        }
+
+        function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
+        
+        function quitToMenu() {
+            document.getElementById('game-ui').classList.add('hidden');
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('main-menu').classList.remove('hidden');
+            checkNameLock();
+        }
+
+        function toggleSettings(show) {
+            if (show) { loadLeaderboard(); showModal('settings-menu'); document.getElementById('main-menu').classList.add('hidden'); }
+            else { hideModal('settings-menu'); document.getElementById('main-menu').classList.remove('hidden'); }
+        }
+
+        window.onload = checkNameLock;
+        document.getElementById('mouse').addEventListener('touchstart', hitMouse);
+    </script>
+</body>
+</html>
