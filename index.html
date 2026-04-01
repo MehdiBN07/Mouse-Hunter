@@ -28,6 +28,37 @@
             overflow: hidden; touch-action: manipulation;
         }
 
+        /* تنسيق الزر الجانبي (أيقونة البيت) */
+        .floating-left-btn {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            width: 65px;
+            height: 65px;
+            background-color: var(--wood-dark);
+            color: white;
+            border-radius: 50%;
+            border: 4px solid var(--wood-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            z-index: 1000;
+            transition: all 0.2s;
+        }
+
+        .floating-left-btn:active {
+            transform: scale(0.9);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .floating-left-btn svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+        }
+
         .panel {
             background: var(--wood-light);
             border: 8px solid var(--wood-dark);
@@ -112,6 +143,12 @@
 </head>
 <body>
 
+    <a href="https://mehdibn07.github.io/THE-GAMEHUB/?fbclid=PAb21jcAQ6HYpleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA81NjcwNjczNDMzNTI0MjcAAadpy1KNcVMgeG8IwaXr63Zt_4C6p3-BdA8IjciAGZf8yYSLL3xvtFIbsq44AA_aem_1zkFfO1rL0YSJJeEv9BhJg&utm_source=ig&utm_medium=social&utm_content=link_in_bio" id="extra-site-btn" class="floating-left-btn" title="الرئيسية">
+        <svg viewBox="0 0 576 512">
+            <path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 25.5-20.6 46.1-46.1 46.1H352.1V352.1c0-22.1-17.9-40.1-40.1-40.1H264c-22.1 0-40.1 17.9-40.1 40.1v141.8H111.6c-25.5 0-46.1-20.6-46.1-46.1L64.7 287.6H32c-18 0-32-14.1-32-32.1 0-9 3-17 10-24L266.4 8c7-7 15-10 24-10s17 3 24 10l251.4 223.5c7 7 10 15 10 24z"/>
+        </svg>
+    </a>
+
     <div id="main-menu" class="panel">
         <h1 id="txt-title">صيد الفأر</h1>
         <input type="text" id="player-name" placeholder="اكتب اسمك..." maxlength="12">
@@ -165,7 +202,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
 
     <script>
-        // --- بيانات Firebase المحدثة برابط بلجيكا الصحيح ---
         const firebaseConfig = {
             apiKey: "AIzaSyCyc21A89tKSJ8NWw8yFTNLZa29DY840RQ",
             authDomain: "ratgame-27efd.firebaseapp.com",
@@ -180,9 +216,9 @@
         const database = firebase.database();
 
         const translations = {
-            ar: { title: "صيد الفأر", start: "ابدأ اللعب", leader: "المتصدرين", leaderTitle: "أفضل 100 لاعب", back: "رجوع", lang: "اللغة:", lives: "الفرص:", score: "النقاط:", surrender: "استسلام", error: "يرجى كتابة اسمك!", result: "انتهت اللعبة!", final: "نتيجتك هي: ", confirm: "هل تريد الاستسلام؟", ok: "حسناً", loading: "جاري التحميل...", dir: "rtl" },
-            en: { title: "Mouse Hunter", start: "Start Game", leader: "Leaderboard", leaderTitle: "Top 100 Players", back: "Back", lang: "Language:", lives: "Lives:", score: "Score:", surrender: "Surrender", error: "Please enter your name!", result: "Game Over!", final: "Your Score: ", confirm: "Surrender?", ok: "OK", loading: "Loading...", dir: "ltr" },
-            fr: { title: "Chasseur de Souris", start: "Jouer", leader: "Classement", leaderTitle: "Top 100 Joueurs", back: "Retour", lang: "Langue:", lives: "Vies:", score: "Score:", surrender: "Abandonner", error: "Entrez votre nom!", result: "Fin de jeu!", final: "Ton Score: ", confirm: "Abandonner?", ok: "D'accord", loading: "Chargement...", dir: "ltr" }
+            ar: { title: "صيد الفأر", start: "ابدأ اللعب", leader: "المتصدرين", leaderTitle: "أفضل 100 لاعب", back: "رجوع", lang: "اللغة:", lives: "الفرص:", score: "النقاط:", surrender: "استسلام", error: "يرجى كتابة اسمك!", result: "انتهت اللعبة!", final: "نتيجتك هي: ", confirm: "هل تريد الاستسلام؟", ok: "حسناً", loading: "جاري التحميل...", dir: "rtl", homeTitle: "الرئيسية" },
+            en: { title: "Mouse Hunter", start: "Start Game", leader: "Leaderboard", leaderTitle: "Top 100 Players", back: "Back", lang: "Language:", lives: "Lives:", score: "Score:", surrender: "Surrender", error: "Please enter your name!", result: "Game Over!", final: "Your Score: ", confirm: "Surrender?", ok: "OK", loading: "Loading...", dir: "ltr", homeTitle: "Home" },
+            fr: { title: "Chasseur de Souris", start: "Jouer", leader: "Classement", leaderTitle: "Top 100 Joueurs", back: "Retour", lang: "Langue:", lives: "Vies:", score: "Score:", surrender: "Abandonner", error: "Entrez votre nom!", result: "Fin de jeu!", final: "Ton Score: ", confirm: "Abandonner?", ok: "D'accord", loading: "Chargement...", dir: "ltr", homeTitle: "Accueil" }
         };
 
         let score = 0, lives = 7, gameInterval;
@@ -203,6 +239,7 @@
             document.getElementById('error-text').innerText = t.error;
             document.getElementById('txt-confirm-msg').innerText = t.confirm;
             document.getElementById('txt-result-title').innerText = t.result;
+            document.getElementById('extra-site-btn').title = t.homeTitle;
         }
 
         function startGame() {
