@@ -54,8 +54,6 @@
         .btn-back { background: var(--btn-back); border-bottom: 5px solid #d32f2f; }
         .btn-amber { background: #ffa000; border-bottom: 5px solid #ef6c00; }
 
-        #game-ui { text-align: center; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        
         #game-container {
             position: relative; width: 90vw; max-width: 500px; height: 60vh;
             background: var(--grass-color); border: 10px solid var(--wood-dark);
@@ -98,8 +96,7 @@
 
         .modal-content {
             background: var(--wood-light); border: 8px solid var(--wood-dark);
-            border-radius: 20px; padding: 25px; text-align: center; color: white;
-            width: 300px;
+            border-radius: 20px; padding: 25px; text-align: center; color: white; width: 300px;
         }
 
         .leaderboard-list {
@@ -112,9 +109,9 @@
             display: flex; justify-content: space-between; font-size: 14px;
         }
         
+        #lock-timer { font-size: 12px; color: #ffeb3b; margin-top: 5px; }
         .flash-red { animation: flash 0.2s; }
         @keyframes flash { 50% { background-color: #ff5252; } }
-        #lock-timer { font-size: 12px; color: #ffeb3b; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -122,10 +119,10 @@
     <div id="main-menu" class="panel">
         <h1 id="txt-title">صيد الفأر</h1>
         <input type="text" id="player-name" placeholder="اكتب اسمك..." maxlength="12">
-        <div id="lock-timer" class="hidden">تغيير الاسم بعد: 24:00:00</div>
+        <div id="lock-timer" class="hidden">تغيير الاسم متاح بعد: 24:00:00</div>
         <div id="error-text" style="color: var(--error-color); display: none; margin-bottom: 10px;">يرجى كتابة اسمك!</div>
         <button class="btn btn-start" id="btn-start" onclick="startGame()">ابدأ اللعب</button>
-        <button class="btn btn-settings" id="btn-leader" onclick="toggleSettings(true)">المتصدرين</button>
+        <button class="btn btn-settings" id="btn-leader" onclick="toggleSettings(true)">المتصدرين والإعدادات</button>
     </div>
 
     <div id="settings-menu" class="panel hidden">
@@ -142,7 +139,7 @@
         <button class="btn btn-back" id="btn-back" onclick="toggleSettings(false)">رجوع</button>
     </div>
 
-    <div id="game-ui" class="hidden">
+    <div id="game-ui" class="hidden" style="text-align:center; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div class="top-bar">
             <div class="stat-box"><span id="txt-lives-label">الفرص:</span> <span id="lives-display">7</span></div>
             <div class="stat-box"><span id="txt-score-label">النقاط:</span> <span id="score-display">0</span></div>
@@ -173,32 +170,35 @@
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
 
     <script>
-        // --- إعدادات Firebase ---
-        // استبدل القيم أدناه ببيانات مشروعك "Ratgame"
+        // بيانات Firebase الخاصة بمشروعك Ratgame
         const firebaseConfig = {
-            apiKey: "ضع_مفتاحك_هنا",
-            authDomain: "ratgame-XXXXX.firebaseapp.com",
-            databaseURL: "https://ratgame-XXXXX-default-rtdb.firebaseio.com",
-            projectId: "ratgame-XXXXX",
-            storageBucket: "ratgame-XXXXX.appspot.com",
-            messagingSenderId: "XXXXXXXX",
-            appId: "XXXXXXXX"
+            apiKey: "AIzaSyCyc21A89tKSJ8NWw8yFTNLZa29DY840RQ",
+            authDomain: "ratgame-27efd.firebaseapp.com",
+            databaseURL: "https://ratgame-27efd-default-rtdb.firebaseio.com",
+            projectId: "ratgame-27efd",
+            storageBucket: "ratgame-27efd.firebasestorage.app",
+            messagingSenderId: "967240699809",
+            appId: "1:967240699809:web:ac12978e2627ef2dfa45e0",
+            measurementId: "G-432TSRCQSN"
         };
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // --- الترجمة ---
+        // الترجمة
         const translations = {
-            ar: { title: "صيد الفأر", start: "ابدأ اللعب", leader: "المتصدرين", leaderTitle: "أفضل 100 لاعب", back: "رجوع", lang: "اللغة:", lives: "الفرص:", score: "النقاط:", surrender: "استسلام", error: "يرجى كتابة اسمك!", result: "انتهت اللعبة!", final: "نتيجتك هي: ", confirm: "هل تريد الاستسلام؟", yes: "نعم", no: "إلغاء", ok: "حسناً", lock: "تغيير الاسم متاح بعد: ", placeholder: "اكتب اسمك...", loading: "جاري التحميل...", dir: "rtl" },
+            ar: { title: "صيد الفأر", start: "ابدأ اللعب", leader: "المتصدرين", leaderTitle: "أفضل 100 لاعب", back: "رجوع", lang: "اللغة:", lives: "الفرص:", score: "النقاط:", surrender: "استسلام", error: "يرجى كتابة اسمك!", result: "انتهت اللعبة!", final: "نتيجتك هي: ", confirm: "هل تريد الاستسلام؟", yes: "نعم", no: "إلغاء", ok: "حسناً", lock: "تغيير متاح بعد: ", placeholder: "اكتب اسمك...", loading: "جاري التحميل...", dir: "rtl" },
             en: { title: "Mouse Hunter", start: "Start Game", leader: "Leaderboard", leaderTitle: "Top 100 Players", back: "Back", lang: "Language:", lives: "Lives:", score: "Score:", surrender: "Surrender", error: "Please enter your name!", result: "Game Over!", final: "Your Score: ", confirm: "Surrender?", yes: "Yes", no: "Cancel", ok: "OK", lock: "Name change in: ", placeholder: "Your name...", loading: "Loading...", dir: "ltr" },
             fr: { title: "Chasseur de Souris", start: "Jouer", leader: "Classement", leaderTitle: "Top 100 Joueurs", back: "Retour", lang: "Langue:", lives: "Vies:", score: "Score:", surrender: "Abandonner", error: "Entrez votre nom!", result: "Fin de jeu!", final: "Ton Score: ", confirm: "Abandonner?", yes: "Oui", no: "Annuler", ok: "D'accord", lock: "Changement dans: ", placeholder: "Ton nom...", loading: "Chargement...", dir: "ltr" }
         };
 
+        const nameInput = document.getElementById('player-name');
+        const lockTimer = document.getElementById('lock-timer');
+        let score = 0, lives = 7, gameInterval;
+
         function changeLanguage() {
             const lang = document.getElementById('lang-select').value;
             const t = translations[lang];
-            
             document.getElementById('html-tag').dir = t.dir;
             document.getElementById('txt-title').innerText = t.title;
             document.getElementById('btn-start').innerText = t.start;
@@ -216,23 +216,14 @@
             document.getElementById('txt-result-title').innerText = t.result;
             document.getElementById('btn-result-ok').innerText = t.ok;
             document.getElementById('player-name').placeholder = t.placeholder;
-            
-            // تحديث حالة العداد إذا كان موجوداً
             checkNameLock();
         }
-
-        // --- منطق اللعبة ---
-        const nameInput = document.getElementById('player-name');
-        const lockTimer = document.getElementById('lock-timer');
-        let score = 0, lives = 7, gameInterval;
 
         function checkNameLock() {
             const lastChange = localStorage.getItem('nameLastChange');
             const savedName = localStorage.getItem('savedPlayerName');
             const lang = document.getElementById('lang-select').value;
-            
             if (savedName) nameInput.value = savedName;
-
             if (lastChange) {
                 const diff = new Date().getTime() - parseInt(lastChange);
                 const dayMs = 24 * 60 * 60 * 1000;
@@ -254,18 +245,12 @@
             const m = Math.floor((ms % 3600000) / 60000);
             const s = Math.floor((ms % 60000) / 1000);
             lockTimer.innerText = translations[lang].lock + `${h}:${m}:${s}`;
-            setTimeout(() => {
-                const currentLang = document.getElementById('lang-select').value;
-                updateTimerDisplay(ms - 1000, currentLang);
-            }, 1000);
+            setTimeout(() => updateTimerDisplay(ms - 1000, document.getElementById('lang-select').value), 1000);
         }
 
         function startGame() {
             const currentName = nameInput.value.trim();
-            if (currentName === "") {
-                document.getElementById('error-text').style.display = 'block';
-                return;
-            }
+            if (currentName === "") { document.getElementById('error-text').style.display = 'block'; return; }
             if (!nameInput.disabled && currentName !== localStorage.getItem('savedPlayerName')) {
                 localStorage.setItem('savedPlayerName', currentName);
                 localStorage.setItem('nameLastChange', new Date().getTime().toString());
@@ -290,8 +275,7 @@
         function hitMouse(e) {
             e.stopPropagation(); e.preventDefault();
             score++; document.getElementById('score-display').innerText = score;
-            updateDifficulty();
-            moveMouse();
+            updateDifficulty(); moveMouse();
         }
 
         function missClick() {
@@ -307,20 +291,22 @@
             gameInterval = setInterval(moveMouse, delay);
         }
 
-        function saveToFirebase(name, finalScore) {
-            const ref = database.ref('leaderboard/' + name);
+        function endGame() {
+            clearInterval(gameInterval);
+            hideModal('confirm-modal');
+            const ref = database.ref('leaderboard/' + nameInput.value);
             ref.once('value').then(snap => {
-                if (!snap.exists() || finalScore > snap.val().score) {
-                    ref.set({ name: name, score: finalScore });
-                }
+                if (!snap.exists() || score > snap.val().score) { ref.set({ name: nameInput.value, score: score }); }
             });
+            const lang = document.getElementById('lang-select').value;
+            document.getElementById('txt-final-score-msg').innerText = translations[lang].final + score;
+            showModal('result-modal');
         }
 
         function loadLeaderboard() {
             const list = document.getElementById('leaderboard-list');
             const lang = document.getElementById('lang-select').value;
             list.innerHTML = `<li>${translations[lang].loading}</li>`;
-            
             database.ref('leaderboard').orderByChild('score').limitToLast(100).on('value', snap => {
                 let items = [];
                 snap.forEach(c => items.push(c.val()));
@@ -329,31 +315,20 @@
             });
         }
 
-        function endGame() {
-            clearInterval(gameInterval);
-            hideModal('confirm-modal');
-            saveToFirebase(nameInput.value, score);
-            const lang = document.getElementById('lang-select').value;
-            document.getElementById('txt-final-score-msg').innerText = translations[lang].final + score;
-            showModal('result-modal');
-        }
-
         function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
-        
         function quitToMenu() {
             document.getElementById('game-ui').classList.add('hidden');
             document.getElementById('game-container').style.display = 'none';
             document.getElementById('main-menu').classList.remove('hidden');
             checkNameLock();
         }
-
         function toggleSettings(show) {
             if (show) { loadLeaderboard(); showModal('settings-menu'); document.getElementById('main-menu').classList.add('hidden'); }
             else { hideModal('settings-menu'); document.getElementById('main-menu').classList.remove('hidden'); }
         }
 
-        window.onload = checkNameLock;
+        window.onload = changeLanguage;
         document.getElementById('mouse').addEventListener('touchstart', hitMouse);
     </script>
 </body>
